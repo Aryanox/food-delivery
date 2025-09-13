@@ -59,7 +59,8 @@
           0 2px 4px -1px rgba(0, 0, 0, 0.2);
       }
       body.dark input,
-      body.dark select {
+      body.dark select,
+      body.dark textarea {
         background-color: #4a5568;
         border-color: #718096;
         color: #e2e8f0;
@@ -207,6 +208,10 @@
         <p class="text-lg text-gray-600 mt-2">
           Your midnight cravings, delivered.
         </p>
+        <p class="text-md text-gray-500 mt-2 font-semibold">
+          <i class="far fa-clock mr-2"></i>Open: 09:30 PM - 02:30 AM
+        </p>
+        <div id="status-indicator" class="mt-2"></div>
       </header>
 
       <main id="menu-container" class="space-y-12"></main>
@@ -219,9 +224,23 @@
 
     <button
       id="theme-switcher-btn"
-      class="fixed bottom-28 right-5 w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50"
+      class="fixed bottom-24 right-5 w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50"
     >
       <i class="fas fa-sun text-xl" id="theme-icon"></i>
+    </button>
+
+    <button
+      id="suggestion-btn"
+      class="fixed bottom-40 right-5 w-12 h-12 bg-yellow-500 text-white rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50"
+    >
+      <i class="fas fa-lightbulb text-xl"></i>
+    </button>
+
+    <button
+      id="history-btn"
+      class="fixed bottom-56 right-5 w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50"
+    >
+      <i class="fas fa-history text-xl"></i>
     </button>
 
     <div id="cart-modal" class="modal-overlay">
@@ -429,11 +448,82 @@
       </div>
     </div>
 
+    <div id="suggestion-modal" class="modal-overlay">
+      <div class="modal-content max-w-lg">
+        <div
+          class="flex justify-between items-center pb-4 border-b border-gray-200"
+        >
+          <h3 class="text-2xl font-bold text-gray-800">Have a Suggestion?</h3>
+          <button
+            id="close-suggestion-modal-btn"
+            class="text-gray-500 hover:text-gray-700 text-3xl"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="mt-4">
+          <form id="suggestion-form">
+            <label
+              for="suggestion-text"
+              class="block text-sm font-medium text-gray-700"
+              >We'd love to hear your ideas for new items or improvements!</label
+            >
+            <textarea
+              id="suggestion-text"
+              name="suggestion"
+              rows="5"
+              required
+              placeholder="Type your suggestion here..."
+              class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2"
+            ></textarea>
+            <button
+              type="submit"
+              id="submit-suggestion-btn"
+              class="w-full bg-yellow-500 text-white text-lg font-semibold py-3 mt-4 rounded-full hover:bg-yellow-600 transition-colors"
+            >
+              Submit Suggestion
+            </button>
+          </form>
+          <div id="suggestion-thanks-msg" class="hidden text-center py-8">
+            <i class="fas fa-check-circle text-4xl text-green-500"></i>
+            <p class="mt-4 text-gray-600 font-semibold">
+              Thank you for your feedback!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="history-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div
+          class="flex justify-between items-center pb-4 border-b border-gray-200"
+        >
+          <h3 class="text-2xl font-bold text-gray-800">Your Order History</h3>
+          <button
+            id="close-history-modal-btn"
+            class="text-gray-500 hover:text-gray-700 text-3xl"
+          >
+            &times;
+          </button>
+        </div>
+        <div
+          id="history-content"
+          class="flex-grow overflow-y-auto mt-4 pr-4 space-y-4"
+        >
+          </div>
+        <div id="empty-history-message" class="hidden text-center py-16">
+          <i class="fas fa-receipt text-5xl text-gray-300"></i>
+          <p class="mt-4 text-gray-500">You haven't placed any orders yet.</p>
+        </div>
+      </div>
+    </div>
+
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         // --- CONFIGURATION ---
         const GOOGLE_SCRIPT_URL =
-          "https://script.google.com/macros/s/AKfycbxP7WC-xI92tMkRhNulsxLZ8yG1l69TxYjn-iFSMp2VmN6lWiq23LKQziP80UMrJm_l/exec"; // <-- IMPORTANT: PASTE YOUR URL HERE
+          "https://script.google.com/macros/s/AKfycbzfFbk3ErQhuvmlGz9uUUtSw9iG9vvK1xmX7XG4CZEJV3PJ6ysWTXN3PZtD9rcFqAL3/exec"; // <-- IMPORTANT: PASTE YOUR URL HERE
 
         const menuData = {
           "Snacks 🍿": [
@@ -442,8 +532,7 @@
               name: "Maggi",
               description: "Classic instant noodles, spicy and delicious.",
               price: 14,
-              imageUrl:"maggi.jpg",
-                
+              imageUrl: "maggi.jpg",
             },
             {
               id: "snack_Lay's Green",
@@ -451,7 +540,6 @@
               description: "Crispy and light potato chips.",
               price: 25,
               imageUrl: "green lays.jpg",
-
             },
             {
               id: "snack_Lay's Blue",
@@ -459,7 +547,6 @@
               description: "Crispy and light potato chips.",
               price: 25,
               imageUrl: "bluelays.jpg",
-
             },
             {
               id: "snack_oreo",
@@ -467,7 +554,6 @@
               description: ".",
               price: 15,
               imageUrl: "oreo.jpg",
-
             },
             {
               id: "snack_Britania veg cake",
@@ -475,17 +561,14 @@
               description: "",
               price: 30,
               imageUrl: "Britania veg cake.jpg",
-
             },
             {
               id: "snack_kurkure",
               name: "KurKure",
               description: "Crunchy and flavorful corn puffs.",
               price: 25,
-              imageUrl:
-                "Kurkure.jpg",
+              imageUrl: "Kurkure.jpg",
             },
-            
           ],
           "Beverages 🥤": [
             {
@@ -493,19 +576,15 @@
               name: "Coke",
               description: "Chilled and refreshing Coca-Cola.",
               price: 25,
-              imageUrl:
-                "coke.jpg",
+              imageUrl: "coke.jpg",
             },
             {
               id: "bev_sprite",
               name: "Sprite",
               description: "Crisp and clean lemon-lime soda.",
               price: 25,
-              imageUrl:
-                "sprite.jpg",
+              imageUrl: "sprite.jpg",
             },
-            
-            
           ],
           "Upcoming Items ✨": [
             {
@@ -520,8 +599,7 @@
               name: "toaster",
               description: "1 hour for 99rupees.",
               price: 99,
-              imageUrl:
-                "toaster.jpg",
+              imageUrl: "toaster.jpg",
             },
           ],
           "Extras 🍴": [
@@ -530,8 +608,7 @@
               name: "(Plate+Spoon) Disposable",
               description: "One set of disposable plate and spoon.",
               price: 5,
-              imageUrl: "https://m.media-amazon.com/images/I/61GgS4kOMDL.jpg",
-              
+              imageUrl: "./disposable.jpg",
             },
           ],
         };
@@ -541,72 +618,111 @@
 
         let cart = JSON.parse(localStorage.getItem("10pmSnacxCart")) || [];
         let tipAmount = 0;
+        let isStoreOpen = false;
 
         const getEl = (id) => document.getElementById(id);
 
-        // --- UI RENDERING ---
+        // --- STATUS CHECK (FIXED) ---
+        const checkOpenStatus = () => {
+          const statusIndicator = getEl("status-indicator");
+          const now = new Date();
+          const currentHour = now.getHours();
+          const currentMinutes = now.getMinutes();
+          
+          const wasOpen = isStoreOpen;
+
+          // Open from 21:30 (9:30 PM) to 02:30 (2:30 AM)
+          isStoreOpen =
+            (currentHour > 21 || (currentHour === 21 && currentMinutes >= 30)) ||
+            (currentHour < 2 || (currentHour === 2 && currentMinutes < 30));
+
+          if (isStoreOpen) {
+            statusIndicator.innerHTML = `
+                <span class="inline-block bg-green-200 text-green-800 text-sm font-semibold px-3 py-1 rounded-full">
+                    <i class="fas fa-door-open mr-2"></i>We are currently Open
+                </span>`;
+          } else {
+            statusIndicator.innerHTML = `
+                <span class="inline-block bg-red-200 text-red-800 text-sm font-semibold px-3 py-1 rounded-full">
+                    <i class="fas fa-door-closed mr-2"></i>We are currently Closed
+                </span>`;
+          }
+
+          // If the open status has changed, re-render the menu to update buttons
+          if (wasOpen !== isStoreOpen) {
+            renderMenu();
+          }
+        };
+
+        // --- UI RENDERING (FIXED) ---
         const createCard = (item, isUpcoming) => `
-                <div class="bg-white rounded-2xl shadow-md overflow-hidden transition-transform transform hover:scale-105 ${
-                  isUpcoming
-                    ? "opacity-50 grayscale cursor-not-allowed"
-                    : "cursor-pointer"
-                }" data-item-id="${item.id}">
-                    <img src="${item.imageUrl}" alt="${
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden transition-transform transform hover:scale-105 ${
+              isUpcoming || !isStoreOpen
+                ? "opacity-60 grayscale cursor-not-allowed"
+                : ""
+            }" data-item-id="${item.id}">
+                <img src="${item.imageUrl}" alt="${
           item.name
         }" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <h3 class="font-bold text-xl text-gray-900">${
-                          item.name
-                        }</h3>
-                        <p class="text-gray-600 text-sm h-10">${
-                          item.description
-                        }</p>
-                        <div class="mt-4 flex justify-between items-center">
-                            <span class="text-xl font-semibold text-gray-800">₹${
-                              item.price
-                            }</span>
-                            ${
-                              !isUpcoming
-                                ? `<button data-item-id="${item.id}" class="add-to-cart-btn bg-blue-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors text-sm">Add</button>`
-                                : ""
-                            }
-                        </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-xl text-gray-900">${
+                      item.name
+                    }</h3>
+                    <p class="text-gray-600 text-sm h-10">${
+                      item.description
+                    }</p>
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-xl font-semibold text-gray-800">₹${
+                          item.price
+                        }</span>
+                        ${
+                          isUpcoming
+                            ? `<span class="text-sm font-semibold text-purple-600">Coming Soon!</span>`
+                            : isStoreOpen
+                            ? `<button data-item-id="${item.id}" class="add-to-cart-btn bg-blue-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors text-sm">Add</button>`
+                            : `<button class="bg-gray-400 text-white px-5 py-2 rounded-full font-semibold text-sm cursor-not-allowed">Closed</button>`
+                        }
                     </div>
-                </div>`;
+                </div>
+            </div>`;
 
         const createCartItem = (item) => `
-                <div class="cart-item flex justify-between items-center bg-gray-50 p-3 rounded-lg" data-item-id="${item.id}">
-                    <div class="flex items-center gap-4">
-                        <img src="${item.imageUrl}" alt="${item.name}" class="w-14 h-14 rounded-md object-cover">
-                        <div>
-                            <p class="font-semibold text-gray-800">${item.name}</p>
-                            <p class="text-sm text-gray-500">₹${item.price}</p>
-                        </div>
+            <div class="cart-item flex justify-between items-center bg-gray-50 p-3 rounded-lg" data-item-id="${
+              item.id
+            }">
+                <div class="flex items-center gap-4">
+                    <img src="${
+                      item.imageUrl
+                    }" alt="${item.name}" class="w-14 h-14 rounded-md object-cover">
+                    <div>
+                        <p class="font-semibold text-gray-800">${item.name}</p>
+                        <p class="text-sm text-gray-500">₹${item.price}</p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button class="cart-qty-btn text-lg bg-gray-200 w-7 h-7 rounded-full leading-none" data-change="-1">-</button>
-                        <span class="font-bold text-lg">${item.quantity}</span>
-                        <button class="cart-qty-btn text-lg bg-gray-200 w-7 h-7 rounded-full leading-none" data-change="1">+</button>
-                        <button class="remove-from-cart-btn text-red-500 hover:text-red-700 ml-2"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </div>`;
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="cart-qty-btn text-lg bg-gray-200 w-7 h-7 rounded-full leading-none" data-change="-1">-</button>
+                    <span class="font-bold text-lg">${item.quantity}</span>
+                    <button class="cart-qty-btn text-lg bg-gray-200 w-7 h-7 rounded-full leading-none" data-change="1">+</button>
+                    <button class="remove-from-cart-btn text-red-500 hover:text-red-700 ml-2"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>`;
 
         const renderMenu = () => {
           const menuContainer = getEl("menu-container");
           menuContainer.innerHTML = Object.keys(menuData)
             .map(
               (category) => `
-                    <section>
-                        <h2 class="text-3xl font-bold text-gray-800 mb-6">${category}</h2>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            ${menuData[category]
-                              .map((item) =>
-                                createCard(item, category.includes("Upcoming"))
-                              )
-                              .join("")}
-                        </div>
-                    </section>
-                `
+                <section>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">${category}</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        ${menuData[category]
+                          .map((item) =>
+                            createCard(item, category.includes("Upcoming"))
+                          )
+                          .join("")}
+                    </div>
+                </section>
+              `
             )
             .join("");
         };
@@ -686,10 +802,68 @@
             modal.classList.remove("is-visible");
         };
 
+        // --- ORDER HISTORY ---
+        const renderOrderHistory = () => {
+          const historyContainer = getEl("history-content");
+          const emptyHistoryMsg = getEl("empty-history-message");
+          const history =
+            JSON.parse(localStorage.getItem("10pmSnacxOrderHistory")) || [];
+
+          if (history.length === 0) {
+            historyContainer.innerHTML = "";
+            emptyHistoryMsg.classList.remove("hidden");
+            return;
+          }
+
+          emptyHistoryMsg.classList.add("hidden");
+          historyContainer.innerHTML = history
+            .map((order) => {
+              const orderDate = new Date(order.date);
+              const formattedDate = `${orderDate.toLocaleDateString()} at ${orderDate.toLocaleTimeString()}`;
+
+              const itemsHtml = order.items
+                .map(
+                  (item) => `
+                        <li class="flex justify-between text-sm">
+                            <span>${item.name} (x${item.quantity})</span>
+                            <span>₹${item.price * item.quantity}</span>
+                        </li>
+                    `
+                )
+                .join("");
+
+              return `
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="pb-2 mb-2 border-b border-gray-200">
+                            <p class="font-bold text-gray-800">Order from ${formattedDate}</p>
+                            <p class="text-sm text-gray-600">To: Room ${order.delivery.room}, Floor ${order.delivery.floor}</p>
+                        </div>
+                        <ul class="space-y-1 mb-2">
+                            ${itemsHtml}
+                            ${
+                              order.tip > 0
+                                ? `
+                                <li class="flex justify-between text-sm">
+                                    <span>Tip</span>
+                                    <span>₹${order.tip}</span>
+                                </li>
+                            `
+                                : ""
+                            }
+                        </ul>
+                        <div class="pt-2 border-t border-gray-200 text-right font-bold text-gray-900">
+                            Total: ₹${order.total}
+                        </div>
+                    </div>
+                `;
+            })
+            .join("");
+        };
+
         // --- EVENT LISTENERS ---
         getEl("menu-container").addEventListener("click", (e) => {
           const button = e.target.closest(".add-to-cart-btn");
-          if (button) {
+          if (button && !button.disabled) {
             addToCart(button.dataset.itemId);
           }
         });
@@ -709,6 +883,7 @@
           }
         });
 
+        // Modal Open/Close Listeners
         getEl("floating-cart-btn").addEventListener("click", () =>
           getEl("cart-modal").classList.add("is-visible")
         );
@@ -720,6 +895,32 @@
             getEl("cart-modal").classList.remove("is-visible");
         });
 
+        // Suggestion Modal Listeners
+        getEl("suggestion-btn").addEventListener("click", () =>
+          getEl("suggestion-modal").classList.add("is-visible")
+        );
+        getEl("close-suggestion-modal-btn").addEventListener("click", () =>
+          getEl("suggestion-modal").classList.remove("is-visible")
+        );
+        getEl("suggestion-modal").addEventListener("click", (e) => {
+          if (e.target.id === "suggestion-modal")
+            getEl("suggestion-modal").classList.remove("is-visible");
+        });
+
+        // History Modal Listeners
+        getEl("history-btn").addEventListener("click", () => {
+          renderOrderHistory();
+          getEl("history-modal").classList.add("is-visible");
+        });
+        getEl("close-history-modal-btn").addEventListener("click", () =>
+          getEl("history-modal").classList.remove("is-visible")
+        );
+        getEl("history-modal").addEventListener("click", (e) => {
+          if (e.target.id === "history-modal")
+            getEl("history-modal").classList.remove("is-visible");
+        });
+
+        // Form Listeners
         getEl("floor").addEventListener("change", (e) => {
           const floor = e.target.value;
           const roomSelect = getEl("room-no");
@@ -778,19 +979,26 @@
             total:
               cart.reduce((sum, item) => sum + item.price * item.quantity, 0) +
               tipAmount,
+            date: new Date().toISOString(),
           };
 
-          // Send data to Google Apps Script
+          const orderHistory =
+            JSON.parse(localStorage.getItem("10pmSnacxOrderHistory")) || [];
+          orderHistory.unshift(orderDetails);
+          if (orderHistory.length > 10) orderHistory.pop();
+          localStorage.setItem(
+            "10pmSnacxOrderHistory",
+            JSON.stringify(orderHistory)
+          );
+
           fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
-            mode: "no-cors", // Important for simple deployment
+            mode: "no-cors",
             cache: "no-cache",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(orderDetails),
           })
             .then(() => {
-              // This block will run regardless of success due to no-cors
-              // So we handle UI updates optimistically
               cart = [];
               tipAmount = 0;
               document
@@ -798,10 +1006,8 @@
                 .forEach((btn) => btn.classList.remove("selected"));
               e.target.reset();
               getEl("room-no").disabled = true;
-
               updateCartView();
               getEl("cart-modal").classList.remove("is-visible");
-
               const placedModal = getEl("order-placed-modal");
               placedModal.classList.add("is-visible");
               setTimeout(
@@ -819,6 +1025,29 @@
             });
         });
 
+        getEl("suggestion-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const suggestionBtn = getEl("submit-suggestion-btn");
+          suggestionBtn.disabled = true;
+          suggestionBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+          setTimeout(() => {
+            getEl("suggestion-form").classList.add("hidden");
+            getEl("suggestion-thanks-msg").classList.remove("hidden");
+            setTimeout(() => {
+              getEl("suggestion-modal").classList.remove("is-visible");
+              setTimeout(() => {
+                getEl("suggestion-form").reset();
+                suggestionBtn.disabled = false;
+                suggestionBtn.innerHTML = "Submit Suggestion";
+                getEl("suggestion-form").classList.remove("hidden");
+                getEl("suggestion-thanks-msg").classList.add("hidden");
+              }, 500);
+            }, 2500);
+          }, 1500);
+        });
+
         // --- THEME SWITCHER ---
         const themeSwitcherBtn = getEl("theme-switcher-btn");
         const themeIcon = getEl("theme-icon");
@@ -826,9 +1055,7 @@
           document.body.classList.toggle("dark", isDark);
           themeIcon.classList.toggle("fa-moon", isDark);
           themeIcon.classList.toggle("fa-sun", !isDark);
-          themeSwitcherBtn.style.backgroundColor = isDark
-            ? "#4a5568"
-            : "#3b82f6";
+          themeSwitcherBtn.style.backgroundColor = isDark ? "#4a5568" : "#3b82f6";
           localStorage.setItem("theme", isDark ? "dark" : "light");
         };
         themeSwitcherBtn.addEventListener("click", () =>
@@ -836,7 +1063,8 @@
         );
 
         // --- INITIALIZATION ---
-        renderMenu();
+        checkOpenStatus();
+        setInterval(checkOpenStatus, 60000); // Check status every minute
         updateCartView();
         updateTheme(localStorage.getItem("theme") === "dark");
       });
